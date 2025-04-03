@@ -1,0 +1,58 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: gitops-workshop-application-pipeline
+spec:
+  params:
+    - name: git-url
+      type: string
+    - default: main
+      name: git-revision
+      type: string
+    - default: Dockerfile
+      name: dockerfile
+      type: string
+    - name: image-url
+      type: string
+    - name: app_name
+      type: string
+  tasks:
+    - name: fetch-repository
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+    - name: build-and-push
+      params:
+        - name: IMAGE
+          value: $(params.image-url)
+        - name: CONTEXT
+          value: $(workspaces.source.path)/build
+        - name: DOCKERFILE
+          value: $(params.dockerfile)
+      runAfter:
+        - fetch-repository
+      taskRef:
+        kind: ClusterTask
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: deploy
+      params:
+        - name: SCRIPT
+          value: oc rollout status deploy/$(params.app_name)
+      runAfter:
+        - build-and-push
+      taskRef:
+        kind: ClusterTask
+        name: openshift-client
+  workspaces:
+    - name: shared-workspace

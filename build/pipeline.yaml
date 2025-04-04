@@ -34,7 +34,7 @@ spec:
         - name: IMAGE
           value: $(params.image-url)
         - name: CONTEXT
-          value: $(workspaces.source.path)/build
+          value: $(workspaces.source.path)/app
         - name: DOCKERFILE
           value: $(params.dockerfile)
       runAfter:
@@ -48,7 +48,7 @@ spec:
     - name: deploy
       params:
         - name: SCRIPT
-          value: oc rollout status deploy/$(params.app_name)
+          value: oc -n user1-dev rollout restart deploy/$(params.app_name)
       runAfter:
         - build-and-push
       taskRef:

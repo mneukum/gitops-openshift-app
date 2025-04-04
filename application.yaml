@@ -4,7 +4,7 @@ metadata:
   name: flask-frontend
 spec:
   destination:
-    namespace: <<changeme>>
+    namespace: user1-dev
     server: https://kubernetes.default.svc
   project: default
   source:
